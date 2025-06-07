@@ -1,0 +1,31 @@
+Table construction_inspections {
+  id int [pk, increment]
+  project_id int [ref: > projects.id]
+  subproject_name varchar(200) // 分項工程名稱
+  inspection_form_name varchar(200) // 抽查表名稱
+  inspection_date date
+  location varchar(200) // 檢查位置
+  timing enum('檢驗停留點', '隨機抽查') // 抽查時機
+  result enum('合格', '不合格') // 抽查結果
+  remark text
+  pdf_path varchar(255) // 產出後抽查表(PDF)存放位置
+  created_at datetime
+  updated_at datetime
+}
+
+Table inspection_photos {
+  id int [pk, increment]
+  inspection_id int [ref: > construction_inspections.id]
+  photo_path varchar(255)
+  capture_date date
+  caption varchar(255)
+}
+
+Table projects {
+  id int [pk, increment]
+  name varchar(200)
+  location varchar(200)
+  contractor varchar(100)
+  start_date date
+  end_date date
+}

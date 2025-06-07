@@ -1,0 +1,9 @@
+streamlit
+pandas
+requests
+python-dotenv
+pypdfium2
+reportlab
+Pillow
+PyPDF2
+Authlib

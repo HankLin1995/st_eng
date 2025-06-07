@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+  # Backend services
+  backend:
+    build: ./backend_eng
+    container_name: backend_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend_eng/static:/app/app/static
+    environment:
+      - DATABASE_URL=mysql+mysqlconnector://root:password@db:3306/mydatabase
+      - PYTHONPATH=/app
+    networks:
+      - backend_network
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: inspection_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=mydatabase
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - backend_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Frontend services
+  frontend:
+    build: ./frontend_eng
+    container_name: inspection_frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./frontend_eng:/app
+    environment:
+      - API_BASE_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - backend_network
+    restart: unless-stopped
+
+  # Cloudflare tunnel for secure access
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TUNNEL_TOKEN}
+  #   networks:
+  #     - backend_network
+  #   restart: unless-stopped
+  #   depends_on:
+  #     - frontend
+  #     - backend
+
+  # Test service for running backend tests
+  # test:
+  #   build: ./backend_eng
+  #   container_name: backend_test
+  #   environment:
+  #     - DATABASE_URL=sqlite:///./data/app.db
+  #     - PYTHONPATH=/app
+  #   command: pytest app/tests/ -v
+  #   profiles:
+  #     - test
+
+networks:
+  backend_network:
+    driver: bridge
+
+volumes:
+  mysql_data:

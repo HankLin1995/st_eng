@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+    container_name: inspection_frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    environment:
+      - API_BASE_URL=http://backend_app:8000
+    # depends_on:
+    #   - backend
+    networks:
+      - backend_eng_backend_network
+    restart: unless-stopped
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TUNNEL_TOKEN}
+    networks:
+      - backend_eng_backend_network
+    restart: unless-stopped
+
+networks:
+  backend_eng_backend_network:
+    # driver: bridge
+    external: true
